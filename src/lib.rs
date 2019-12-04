@@ -27,8 +27,8 @@ mod error;
 mod frame;
 mod pause;
 
-#[cfg(test)]
-mod tests;
+//#[cfg(test)]
+//mod tests;
 
 pub(crate) mod connection;
 
