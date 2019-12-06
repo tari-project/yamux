@@ -8,13 +8,13 @@
 // at https://www.apache.org/licenses/LICENSE-2.0 and a copy of the MIT license
 // at https://opensource.org/licenses/MIT.
 
-//use async_std::{net::{TcpStream, TcpListener}, task};
-//use bytes::Bytes;
-//use futures::{channel::mpsc, prelude::*};
-//use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
-//use yamux::{Config, Connection, Mode};
+// use async_std::{net::{TcpStream, TcpListener}, task};
+// use bytes::Bytes;
+// use futures::{channel::mpsc, prelude::*};
+// use std::net::{Ipv4Addr, SocketAddr, SocketAddrV4};
+// use yamux::{Config, Connection, Mode};
 //
-//async fn roundtrip(address: SocketAddr, nstreams: usize, data: Bytes) {
+// async fn roundtrip(address: SocketAddr, nstreams: usize, data: Bytes) {
 //    let listener = TcpListener::bind(&address).await.expect("bind");
 //    let address = listener.local_addr().expect("local address");
 //
@@ -67,7 +67,7 @@
 //}
 //
 //#[test]
-//fn concurrent_streams() {
+// fn concurrent_streams() {
 //    let data = Bytes::from(vec![0x42; 100 * 1024]);
 //    let addr = SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::new(127, 0, 0, 1), 0));
 //    task::block_on(roundtrip(addr, 1000, data))

@@ -8,10 +8,17 @@
 // at https://www.apache.org/licenses/LICENSE-2.0 and a copy of the MIT license
 // at https://opensource.org/licenses/MIT.
 
+use super::{
+    header::{self, HeaderDecodeError},
+    Frame,
+};
 use crate::u32_as_usize;
 use futures::{io::BufWriter, prelude::*, ready};
-use std::{io, pin::Pin, task::{Context, Poll}};
-use super::{Frame, header::{self, HeaderDecodeError}};
+use std::{
+    io,
+    pin::Pin,
+    task::{Context, Poll},
+};
 use thiserror::Error;
 
 /// When growing buffers we allocate units of `BLOCKSIZE`.
@@ -24,7 +31,7 @@ pub struct Io<T> {
     io: BufWriter<T>,
     buffer: buf::Buffer,
     header: Option<header::Header<()>>,
-    max_body_len: usize
+    max_body_len: usize,
 }
 
 impl<T: AsyncRead + AsyncWrite + Unpin> Io<T> {
@@ -33,7 +40,7 @@ impl<T: AsyncRead + AsyncWrite + Unpin> Io<T> {
             io: BufWriter::with_capacity(BLOCKSIZE, io),
             buffer: buf::Buffer::new(),
             header: None,
-            max_body_len: max_frame_body_len
+            max_body_len: max_frame_body_len,
         }
     }
 
@@ -58,16 +65,16 @@ impl<T: AsyncRead + AsyncWrite + Unpin> Io<T> {
     fn decode(&mut self) -> Result<Option<Frame<()>>, FrameDecodeError> {
         if self.header.is_none() {
             if self.buffer.len() < header::HEADER_SIZE {
-                return Ok(None)
+                return Ok(None);
             }
             let mut b = [0u8; header::HEADER_SIZE];
             b.copy_from_slice(self.buffer.split_to(header::HEADER_SIZE).as_ref());
             let header = header::decode(&b)?;
             if header.tag() != header::Tag::Data {
-                return Ok(Some(Frame::new(header)))
+                return Ok(Some(Frame::new(header)));
             }
             if u32_as_usize(header.len().val()) > self.max_body_len {
-                return Err(FrameDecodeError::FrameTooLarge(u32_as_usize(header.len().val())))
+                return Err(FrameDecodeError::FrameTooLarge(u32_as_usize(header.len().val())));
             }
             self.buffer.reserve(u32_as_usize(header.len().val()));
             self.header = Some(header)
@@ -77,7 +84,10 @@ impl<T: AsyncRead + AsyncWrite + Unpin> Io<T> {
             let n = u32_as_usize(header.len().val());
             if n <= self.buffer.len() {
                 let bytes = self.buffer.split_to(n).into_bytes();
-                return Ok(Some(Frame { header, body: bytes.freeze() }))
+                return Ok(Some(Frame {
+                    header,
+                    body: bytes.freeze(),
+                }));
             }
             self.header = Some(header)
         }
@@ -102,15 +112,15 @@ impl<T: AsyncRead + AsyncWrite + Unpin> Stream for Io<T> {
                     match ready!(Pin::new(this.io.get_mut()).poll_read(cx, write_buffer)?) {
                         0 => {
                             if this.header.is_none() && this.buffer.is_empty() {
-                                return Poll::Ready(None)
+                                return Poll::Ready(None);
                             }
                             let e = FrameDecodeError::Io(io::ErrorKind::UnexpectedEof.into());
-                            return Poll::Ready(Some(Err(e)))
-                        }
-                        n => this.buffer.advance_mut(n)
+                            return Poll::Ready(Some(Err(e)));
+                        },
+                        n => this.buffer.advance_mut(n),
                     }
-                }
-                Err(e) => return Poll::Ready(Some(Err(e)))
+                },
+                Err(e) => return Poll::Ready(Some(Err(e))),
             }
         }
     }
@@ -118,7 +128,10 @@ impl<T: AsyncRead + AsyncWrite + Unpin> Stream for Io<T> {
 
 mod buf {
     use bytes::{BufMut, BytesMut};
-    use std::{mem::{self, MaybeUninit}, ptr};
+    use std::{
+        mem::{self, MaybeUninit},
+        ptr,
+    };
 
     /// Wrapper around `BytesMut` with a safe API.
     #[derive(Debug)]
@@ -214,12 +227,12 @@ pub enum FrameDecodeError {
 
     #[doc(hidden)]
     #[error("__Nonexhaustive")]
-    __Nonexhaustive
+    __Nonexhaustive,
 }
 
 // TODO: futures::io::Cursor  not available in futures-preview@0.3.0-alpha.19
 //#[cfg(test)]
-//mod tests {
+// mod tests {
 //    use bytes::Bytes;
 //    use quickcheck::{Arbitrary, Gen, QuickCheck};
 //    use rand::RngCore;
@@ -267,4 +280,3 @@ pub enum FrameDecodeError {
 //            .quickcheck(property as fn(Frame<()>) -> bool)
 //    }
 //}
-

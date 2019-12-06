@@ -36,7 +36,7 @@ pub enum ConnectionError {
 
     #[doc(hidden)]
     #[error("__Nonexhaustive")]
-    __Nonexhaustive
+    __Nonexhaustive,
 }
 
 impl From<futures::channel::mpsc::SendError> for ConnectionError {

@@ -18,7 +18,7 @@ use std::collections::VecDeque;
 /// [`Bytes`] elements.
 #[derive(Debug)]
 pub(crate) struct Chunks {
-    seq: VecDeque<Bytes>
+    seq: VecDeque<Bytes>,
 }
 
 impl Chunks {
@@ -31,9 +31,9 @@ impl Chunks {
     }
 
     pub(crate) fn len(&self) -> Option<usize> {
-        self.seq.iter().fold(Some(0), |total, x| {
-            total.and_then(|n| n.checked_add(x.len()))
-        })
+        self.seq
+            .iter()
+            .fold(Some(0), |total, x| total.and_then(|n| n.checked_add(x.len())))
     }
 
     pub(crate) fn push(&mut self, x: Bytes) {

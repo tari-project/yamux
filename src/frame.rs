@@ -12,21 +12,24 @@ pub mod header;
 mod io;
 
 use bytes::Bytes;
-use header::{Header, StreamId, Data, WindowUpdate, GoAway};
+use header::{Data, GoAway, Header, StreamId, WindowUpdate};
 use std::{convert::TryInto, num::TryFromIntError};
 
-pub use io::{Io, FrameDecodeError};
+pub use io::{FrameDecodeError, Io};
 
 /// A Yamux message frame consisting of header and body.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Frame<T> {
     header: Header<T>,
-    body: Bytes
+    body: Bytes,
 }
 
 impl<T> Frame<T> {
     pub fn new(header: Header<T>) -> Self {
-        Frame { header, body: Bytes::new() }
+        Frame {
+            header,
+            body: Bytes::new(),
+        }
     }
 
     pub fn header(&self) -> &Header<T> {
@@ -40,7 +43,7 @@ impl<T> Frame<T> {
     pub(crate) fn cast<U>(self) -> Frame<U> {
         Frame {
             header: self.header.cast(),
-            body: self.body
+            body: self.body,
         }
     }
 }
@@ -49,7 +52,7 @@ impl Frame<Data> {
     pub fn data(id: StreamId, b: Bytes) -> Result<Self, TryFromIntError> {
         Ok(Frame {
             header: Header::data(id, b.len().try_into()?),
-            body: b
+            body: b,
         })
     }
 
@@ -72,7 +75,7 @@ impl Frame<WindowUpdate> {
     pub fn window_update(id: StreamId, credit: u32) -> Self {
         Frame {
             header: Header::window_update(id, credit),
-            body: Bytes::new()
+            body: Bytes::new(),
         }
     }
 }
@@ -81,22 +84,21 @@ impl Frame<GoAway> {
     pub fn term() -> Self {
         Frame {
             header: Header::term(),
-            body: Bytes::new()
+            body: Bytes::new(),
         }
     }
 
     pub fn protocol_error() -> Self {
         Frame {
             header: Header::protocol_error(),
-            body: Bytes::new()
+            body: Bytes::new(),
         }
     }
 
     pub fn internal_error() -> Self {
         Frame {
             header: Header::internal_error(),
-            body: Bytes::new()
+            body: Bytes::new(),
         }
     }
 }
-

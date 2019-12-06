@@ -16,8 +16,7 @@
 //! The three primary objects, clients of this crate interact with, are:
 //!
 //! - [`Connection`], which wraps the underlying I/O resource, e.g. a socket,
-//! - [`Stream`], which implements [`futures::io::AsyncRead`] and
-//!   [`futures::io::AsyncWrite`], and
+//! - [`Stream`], which implements [`futures::io::AsyncRead`] and [`futures::io::AsyncWrite`], and
 //! - [`Control`], to asynchronously control the [`Connection`].
 //!
 //! [1]: https://github.com/hashicorp/yamux/blob/master/spec.md
@@ -28,13 +27,18 @@ mod frame;
 mod pause;
 
 //#[cfg(test)]
-//mod tests;
+// mod tests;
 
 pub(crate) mod connection;
 
-pub use crate::connection::{Connection, Mode, Control, Packet, Stream, into_stream};
-pub use crate::error::ConnectionError;
-pub use crate::frame::{FrameDecodeError, header::{HeaderDecodeError, StreamId}};
+pub use crate::{
+    connection::{into_stream, Connection, Control, Mode, Packet, Stream},
+    error::ConnectionError,
+    frame::{
+        header::{HeaderDecodeError, StreamId},
+        FrameDecodeError,
+    },
+};
 
 const DEFAULT_CREDIT: u32 = 256 * 1024; // as per yamux specification
 
@@ -59,10 +63,9 @@ pub enum WindowUpdateMode {
     /// that this will never happen, i.e. if
     ///
     /// - Endpoints *A* and *B* never write at the same time, *or*
-    /// - Endpoints *A* and *B* write at most *n* frames concurrently such that the sum
-    ///   of the frame lengths is less or equal to the available credit of *A* and *B*
-    ///   respectively.
-    OnRead
+    /// - Endpoints *A* and *B* write at most *n* frames concurrently such that the sum of the frame lengths is less or
+    ///   equal to the available credit of *A* and *B* respectively.
+    OnRead,
 }
 
 /// Yamux configuration.
@@ -80,7 +83,7 @@ pub struct Config {
     max_buffer_size: usize,
     max_num_streams: usize,
     window_update_mode: WindowUpdateMode,
-    read_after_close: bool
+    read_after_close: bool,
 }
 
 impl Default for Config {
@@ -90,7 +93,7 @@ impl Default for Config {
             max_buffer_size: 1024 * 1024,
             max_num_streams: 8192,
             window_update_mode: WindowUpdateMode::OnReceive,
-            read_after_close: true
+            read_after_close: true,
         }
     }
 }
@@ -137,4 +140,3 @@ impl Config {
 const fn u32_as_usize(a: u32) -> usize {
     a as usize
 }
-
